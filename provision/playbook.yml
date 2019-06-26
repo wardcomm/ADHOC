@@ -1,0 +1,14 @@
+---
+- hosts: all
+  become: True
+  tasks:
+    - include: tasks/deps.yml
+
+  - name: Adding nginx repository
+    yum_repository:
+      name: azure-cli
+      description: nginx repo 
+      baseurl: http://nginx.org/packages/mainline/centos/7/$basearch/
+      gpgcheck: yes
+      enabled: yes
+ #     gpgkey: https://packages.microsoft.com/keys/microsoft.asc
