@@ -1,14 +1,117 @@
 ---
-- hosts: all
-  become: True
+- hosts: localhost
+  become: true
   tasks:
-    - include: tasks/deps.yml
 
-  - name: Adding nginx repository
+  - name: Adding Nginx Repository
     yum_repository:
-      name: azure-cli
-      description: nginx repo 
-      baseurl: http://nginx.org/packages/mainline/centos/7/$basearch/
-      gpgcheck: yes
+      name: nginx
+      description: Nginx repo
+      baseurl: http://nginx.org/packages/mainline/centos/6/$basearch/
+      gpgcheck: no
       enabled: yes
- #     gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+
+  - name: Install Multiple Apps
+    yum:
+      name: "{{ item }}"
+      state: latest
+    loop:
+     - nginx
+     - unzip
+     - libselinux-python
+     - openssl
+
+  - name: Nginx start your Engines {starting ngnix service}
+    service:
+      name: nginx
+      state: reloaded
+
+  - name: Enable service Ngnix
+    service:
+      name: nginx
+      enabled: yes
+
+  - name: Restart Ngnix if nothing has changed
+    service:
+      name: nginx
+      state: restarted
+
+  - name: Create sites-available directory if it does not exist
+    file:
+      path: /etc/nginx/sites-available/
+      state: directory
+      mode: '0755'
+
+  - name: Create sites-enabled directory if it does not exist
+    file:
+      path: /etc/nginx/sites-enabled/
+      state: directory
+      mode: '0755'
+
+  - name: copy static_site.cfg and restart nginx
+    copy:
+      src: files/static_site.cfg
+      dest: /etc/nginx/sites-available/static_site.cfg
+
+  - name: create symlink
+    file:
+      src: /etc/nginx/sites-available/static_site.cfg
+      dest: /etc/nginx/sites-enabled/default
+      state: link
+      force: yes
+
+  - name: copy the nginx config file and restart nginx
+    copy:
+      src: config/nginx.conf
+      dest: /etc/nginx
+
+  - name: copy public key to certs Directory and restart nginx
+    copy:
+      src: files/self-signed.crt
+      dest: /etc/ssl/certs/self-signed.crt
+    notify:
+       - restart nginx
+
+  - name: Create  directory to Private key if it does not exist
+    file:
+      path: /etc/ssl/private
+      state: directory
+      mode: '0700'
+
+  - name: copy private key to certs Directory and restart nginx
+    copy:
+      src: files/self-signed.key
+      dest: /etc/ssl/private/self-signed.key
+
+  - name: Diffie-Hellman  create pem
+    command: openssl dhparam -dsaparam -out /etc/ssl/certs/dhparam.pem 4096
+
+  - name: Configure Nginx to Use SSL
+    copy:
+      src: files/ssl.conf
+      dest: /etc/nginx/conf.d/ssl.conf
+      # listen:
+      #   - restart nginx
+
+  - name: Create  directory for application if it does not exist
+    file:
+      path: /opt/application
+      state: directory
+      mode: '0700'
+
+  - name: copy private key to certs Directory and restart nginx
+    copy:
+      src: files/application.zip
+      dest: /opt/application.zip
+
+  - name: Unarchive application zip on the remote machine
+    unarchive:
+      src: /opt/application.zip
+      dest: /opt/application
+
+  - name: remove application zip file
+    file:
+      state: absent
+      path: /opt/application.zip
+
+

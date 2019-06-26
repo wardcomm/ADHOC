@@ -1,0 +1,14 @@
+---
+- hosts: localhost
+  become: true
+  tasks:
+
+  - name: Remove Multiple Apps
+    yum:
+      name: "{{ item }}"
+      state: absent
+    loop:
+     - nginx
+     - unzip
+     - libselinux-python
+     - openssl
