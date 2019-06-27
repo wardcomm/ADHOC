@@ -1,6 +1,7 @@
 ---
 - hosts: localhost
   become: true
+  gather_facts: no
   tasks:
 
   - name: Adding Nginx Repository
@@ -20,34 +21,46 @@
      - unzip
      - libselinux-python
      - openssl
+    #  - chpst
 
-  - name: download file from a file path
+  - name: download runit from a file path
     get_url:
       url: "https://packagecloud.io/imeyer/runit/packages/el/6/runit-2.1.2-1.el6.x86_64.rpm/download.rpm"
       dest: /tmp/runit.rpm
 
-  - name: install runit rpm locally
+  - name: Install runit rpm locally
     yum:
       name: /tmp/runit.rpm
       state: present
 
+  - name: Create runit directory if it does not exist
+    file:
+      path: /etc/service
+      state: directory
+      mode: '0700'
 
+  - name: Copy file with owner and permissions
+    copy:
+      src: files/nginx
+      dest: /etc/service/nginx
+      owner: root
+      group: root
+      mode: '0744'
 
+  # - name: Nginx start your Engines {starting ngnix service}
+  #   service:
+  #     name: nginx
+  #     state: reloaded
 
-  - name: Nginx start your Engines {starting ngnix service}
-    service:
-      name: nginx
-      state: reloaded
+  # - name: Enable service Ngnix
+  #   service:
+  #     name: nginx
+  #     enabled: yes
 
-  - name: Enable service Ngnix
-    service:
-      name: nginx
-      enabled: yes
-
-  - name: Restart Ngnix if nothing has changed
-    service:
-      name: nginx
-      state: restarted
+  # - name: Restart Ngnix if nothing has changed
+  #   service:
+  #     name: nginx
+  #     state: restarted
 
   - name: Create sites-available directory if it does not exist
     file:
@@ -72,6 +85,12 @@
       dest: /etc/nginx/sites-enabled/default
       state: link
       force: yes
+
+  - name: copy server.conf to conf Directory and restart nginx
+    copy:
+      src: files/server.conf
+      dest: /etc/nginx/conf.d/server.conf
+
 
   - name: copy the nginx config file and restart nginx
     copy:
@@ -126,7 +145,7 @@
   - name: Unarchive application zip on the remote machine
     unarchive:
       src: /opt/application.zip
-      dest: /opt/application
+      dest: /opt/
 
   - name: remove application zip file
     file:
