@@ -21,6 +21,19 @@
      - libselinux-python
      - openssl
 
+  - name: download file from a file path
+    get_url:
+      url: "https://packagecloud.io/imeyer/runit/packages/el/6/runit-2.1.2-1.el6.x86_64.rpm/download.rpm"
+      dest: /tmp/runit.rpm
+
+  - name: install runit rpm locally
+    yum:
+      name: /tmp/runit.rpm
+      state: present
+
+
+
+
   - name: Nginx start your Engines {starting ngnix service}
     service:
       name: nginx
