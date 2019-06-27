@@ -9,6 +9,6 @@
       state: absent
     loop:
      - nginx
-     - unzip
-     - libselinux-python
-     - openssl
+    #  - unzip
+    #  - libselinux-python
+    #  - openssl

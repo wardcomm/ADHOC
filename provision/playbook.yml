@@ -65,6 +65,12 @@
       src: config/nginx.conf
       dest: /etc/nginx
 
+  - name: Create  directory to Public key if it does not exist
+    file:
+      path: /etc/ssl/certs/
+      state: directory
+      mode: '0700'
+
   - name: copy public key to certs Directory and restart nginx
     copy:
       src: files/self-signed.crt
