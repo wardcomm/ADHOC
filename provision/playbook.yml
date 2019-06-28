@@ -4,6 +4,17 @@
   gather_facts: no
   tasks:
 
+
+  - name: copy install script to server
+    copy:
+      src: files/install_nginx.sh
+      dest: /tmp/install_nginx.sh
+      mode: 0700
+
+  - name: run install script
+    shell: /tmp/install_nginx.sh >> /tmp/nginx_install.log
+
+
   - name: Adding Nginx Repository
     yum_repository:
       name: nginx
@@ -17,7 +28,7 @@
       name: "{{ item }}"
       state: latest
     loop:
-     - nginx
+    #  - nginx
      - unzip
      - libselinux-python
      - openssl
@@ -79,6 +90,12 @@
       src: files/static_site.cfg
       dest: /etc/nginx/sites-available/static_site.cfg
 
+  - name: copy nginx.service
+    copy:
+      src: files/nginx.service
+      dest: /usr/lib/systemd/system/nginx.service
+
+
   - name: create symlink
     file:
       src: /etc/nginx/sites-available/static_site.cfg
@@ -95,7 +112,7 @@
   - name: copy the nginx config file and restart nginx
     copy:
       src: config/nginx.conf
-      dest: /etc/nginx
+      dest: /etc/nginx/conf
 
   - name: Create  directory to Public key if it does not exist
     file:
